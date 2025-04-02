@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define N 11
+#define N 250
 #define DIRECTIONS 4
 
 int grid[N][N] = {0};
@@ -15,29 +15,6 @@ int center = (N % 2 == 0) ? (N / 2) - 1 : (N / 2);
 int move_i[] = {-1, 1, 0, 0};
 int move_j[] = {0, 0, -1, 1};
 
-void print_grid() {
-    printf("Número de Pontos Salvos: %d\n\n", Np);
-    printf("   ");
-    for (int i = 0; i < N; i++) {
-        printf("%2d ", i + 1);
-    }
-    printf("\n");
-
-    for (int i = 0; i < N; i++) {
-        printf("%2d ", i + 1);
-
-        for (int j = 0; j < N; j++) {
-            if (i == center && j == center) {
-                printf("@  ");
-            } else {
-                printf("%c  ", grid[i][j] ? '#' : '.');
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
 void get_random_empty_cell(int *i, int *j) {
     do {
         *i = rand() % N;
@@ -45,60 +22,50 @@ void get_random_empty_cell(int *i, int *j) {
     } while (grid[*i][*j] == 1);
 }
 
-void verify_point(int i, int j) {
-    int direction = rand() % DIRECTIONS;
-    int ni, nj;
+void verify_point(int i, int j, FILE *file) {
+    int total_steps = 1;
+    int fist_i = i;
+    int first_j = j;
 
-    if (i == 0 && direction == 0) { 
-        ni = N - 1; 
-        nj = j;
-    } else if (j == 0 && direction == 2) { 
-        ni = i;
-        nj = N - 1; 
-    } else if (i == N - 1 && direction == 1) { 
-        ni = 0; 
-        nj = j;
-    } else if (j == N - 1 && direction == 3) { 
-        ni = i;
-        nj = 0;
-    } else {
-        ni = i + move_i[direction];
-        nj = j + move_j[direction];
+    while (1) { 
+        int direction = rand() % DIRECTIONS;
+        int ni = (i + move_i[direction] + N) % N;
+        int nj = (j + move_j[direction] + N) % N;
+
+        if (grid[ni][nj] == 1) {
+            grid[i][j] = 1;
+            fprintf(file, "%d %d | First point = %d %d | Total Steps until valid point = %d\n", i, j, fist_i, first_j, total_steps);
+            Np++;
+            return;
+        } else {
+            i = ni;
+            j = nj;
+            total_steps++;
+        }
+        attempts++;
     }
-
-    if (grid[ni][nj] == 1) {
-        grid[i][j] = 1;
-        Np++;
-    }
-
-    // Debug (remover para numeros muito grandes)
-    printf("\n\nEscolha Aleatória: i = %d j = %d \n", i + 1, j + 1);
-    printf("Direção: %s\n", (direction == 0) ? "Norte" : (direction == 1) ? "Sul" : (direction == 2) ? "Oeste" : "Leste");
-    printf("Posição Vizinha: ni = %d nj = %d, Valor = %d \n", ni + 1, nj + 1, grid[ni][nj]);
-    printf("Resultado: grid[%d][%d] = %d \n", i + 1, j + 1, grid[ni][nj] == 1 ? 1 : 0);
-    print_grid();
-
-    attempts++;
 }
 
 int main() {
     srand(time(NULL));
 
-    grid[center][center] = 1;
-    Np++;
+    FILE *file = fopen("output.dat", "w");
+    if (file == NULL) {
+        printf("Erro ao criar arquivo de saída.\n");
+        return 1;
+    }   
 
-    printf("\nPonto central definido: grid[%d][%d]\n", center + 1, center + 1);
-    print_grid();
+    grid[center][center] = 1;
+    fprintf(file, "%d %d | First point = %d %d | Total Steps until valid point = %d\n", center, center, center, center, 1);
+
+    Np++;
 
     while (Np < (int)((N * N) * 0.1)) {
         int i, j;
         get_random_empty_cell(&i, &j);
-        verify_point(i, j);
+        verify_point(i, j, file);
     }
 
-    printf("Resultado Final: \n\n");
-    printf("Número de Tentativas: %d\n", attempts);
-    print_grid();
-
+    fclose(file);
     return 0;
 }
