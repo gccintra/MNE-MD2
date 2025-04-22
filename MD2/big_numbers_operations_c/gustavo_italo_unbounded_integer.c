@@ -1,8 +1,28 @@
-#include "unbounded_integer.h"
+// Alunos: Gustavo da Costa Cintra (232037786) e Ítalo Alves Sampaio de Oliveira (232037937)
+
 #include <stdarg.h> 
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h> 
+#include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
+
+struct UnboundedInteger
+{
+    uint64_t *integer;
+    short sign;
+    int size;
+    char *hex;
+};
+
+struct UnboundedInteger unbounded_integer_constructor(short sign, int size, ...);
+void unbounded_integer_desctructor(struct UnboundedInteger *bignum);
+static void generate_hex_string(struct UnboundedInteger *num);
+static void normalize(struct UnboundedInteger *num);
+struct UnboundedInteger unbounded_integer_add(struct UnboundedInteger a, struct UnboundedInteger b);
+struct UnboundedInteger unbounded_integer_sub(struct UnboundedInteger a, struct UnboundedInteger b);
+static int compare_abs(const struct UnboundedInteger *a, const struct UnboundedInteger *b);
 
 struct UnboundedInteger unbounded_integer_constructor(short sign, int size, ...) {
     struct UnboundedInteger result;
@@ -14,7 +34,7 @@ struct UnboundedInteger unbounded_integer_constructor(short sign, int size, ...)
         fprintf(stderr, "Erro: Falha ao alocar memória para os blocos.\n");
         exit(EXIT_FAILURE);
     }
-    
+
     result.hex = malloc((size * 16 + 1)); 
     result.hex[0] = '\0'; 
 
@@ -34,7 +54,6 @@ struct UnboundedInteger unbounded_integer_constructor(short sign, int size, ...)
 void unbounded_integer_desctructor(struct UnboundedInteger *bignum) {
     free(bignum->integer);
     free(bignum->hex);
-
 }
 
 struct UnboundedInteger unbounded_integer_add(struct UnboundedInteger a, struct UnboundedInteger b) {
@@ -113,7 +132,7 @@ struct UnboundedInteger unbounded_integer_sub(struct UnboundedInteger a, struct 
     return result;
 }
 
-int compare_abs(const struct UnboundedInteger *a, const struct UnboundedInteger *b) {
+static int compare_abs(const struct UnboundedInteger *a, const struct UnboundedInteger *b) {
     if (a->size > b->size) return 1;
     if (a->size < b->size) return -1;
 
@@ -124,8 +143,7 @@ int compare_abs(const struct UnboundedInteger *a, const struct UnboundedInteger 
     return 0;
 }
 
-
-void generate_hex_string(struct UnboundedInteger *num) {
+static void generate_hex_string(struct UnboundedInteger *num) {
     free(num->hex);
     num->hex = calloc(num->size * 17 + 2, sizeof(char));
     int pos = 0;
@@ -157,8 +175,32 @@ void generate_hex_string(struct UnboundedInteger *num) {
     }
 }
 
-void normalize(struct UnboundedInteger *num) {
+static void normalize(struct UnboundedInteger *num) {
     while (num->size > 1 && num->integer[num->size - 1] == 0) {
         num->size--;
     }
+}
+
+int main() {
+    struct UnboundedInteger x = unbounded_integer_constructor(1, 2, 
+        0x783913FACBE92313, 
+        0xFFFFFFFFFFA8319F
+    );
+
+    struct UnboundedInteger y = unbounded_integer_constructor(1, 2, 
+        0x9999913FACBE931E, 
+        0xFFF222FFFFA8319F
+    );
+
+    struct UnboundedInteger sum = unbounded_integer_add(x, y);
+    struct UnboundedInteger diff = unbounded_integer_sub(x, y);
+    printf("sum hex: %s\n", sum.hex);
+    printf("diff hex: %s\n", diff.hex);
+
+    
+    unbounded_integer_desctructor(&x);
+    unbounded_integer_desctructor(&y);
+    unbounded_integer_desctructor(&sum);
+    unbounded_integer_desctructor(&diff);
+    return 0;
 }
