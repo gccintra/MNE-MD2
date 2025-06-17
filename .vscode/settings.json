@@ -1,9 +1,11 @@
 {
     "files.associations": {
+        "*.html": "jinja-html",
         "compare": "cpp",
         "cstdint": "cpp",
         "array": "c",
         "string_view": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "vector": "cpp"
     }
 }
